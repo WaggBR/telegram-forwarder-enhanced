@@ -22,20 +22,48 @@ def find_message_index(client, chat_id, last_message_text):
     """Finding the last message sent in SOURCE_CHAT_ID."""
     if not last_message_text:
         return None
+    
+    log_message("Searching", "Last Message", f"Looking for: {last_message_text}")
+    
     for message in client.iter_messages(chat_id, reverse=True):
-        if message.text == last_message_text or message.id == last_message_text:
+        # Check if message text matches
+        if message.text and message.text == last_message_text:
+            log_message("Found", "Message Match", f"Message ID: {message.id}")
             return message.id
+        # Check if message ID matches (in case it's a number)
+        elif str(message.id) == str(last_message_text):
+            log_message("Found", "ID Match", f"Message ID: {message.id}")
+            return message.id
+    
+    log_message("Not Found", "Last Message", "Could not find matching message")
     return None
 
 with TelegramClient(BOT_SETTING.NAME, BOT_SETTING.API_ID, BOT_SETTING.API_HASH) as client:
     amount_sent = 0
 
-    user_input = input("Want to upload new messages? (y/n): ").strip().lower()
+    print("Choose upload mode:")
+    print("1. Continue from last uploaded message (y)")
+    print("2. Upload all messages again (n)")
+    print("3. Upload from specific message ID (s)")
+    
+    user_input = input("Enter your choice (y/n/s): ").strip().lower()
 
     if user_input == 'y':
-        log_message("Info", "Mode", "New message loading mode")
+        log_message("Info", "Mode", "Continue from last uploaded message")
         last_dest_message_text = get_last_message_id(client, BOT_SETTING.DESTINATION_CHAT_ID)
         start_from_id = find_message_index(client, BOT_SETTING.SOURCE_CHAT_ID, last_dest_message_text)
+        if start_from_id:
+            log_message("Info", "Starting From", f"Message ID: {start_from_id}")
+        else:
+            log_message("Warning", "No Last Message", "Could not find last message, starting from beginning")
+            start_from_id = None
+    elif user_input == 's':
+        try:
+            start_from_id = int(input("Enter the message ID to start from: "))
+            log_message("Info", "Mode", f"Starting from specific message ID: {start_from_id}")
+        except ValueError:
+            log_message("Error", "Invalid Input", "Please enter a valid message ID number")
+            start_from_id = None
     else:
         log_message("Info", "Mode", "Load all messages again")
         start_from_id = None
@@ -45,10 +73,13 @@ with TelegramClient(BOT_SETTING.NAME, BOT_SETTING.API_ID, BOT_SETTING.API_HASH) 
     else:
         messages = client.iter_messages(BOT_SETTING.SOURCE_CHAT_ID, reverse=True)
 
+    message_count = 0
     for message in messages:
         if isinstance(message, MessageService):
             continue
         try:
+            message_count += 1
+            log_message("Processing", f"Message #{message_count}", f"ID: {message.id}")
             if message.text and not message.media:
                 log_message("Loading", "Text Message", f"Content: {message.text[:50]}")
                 client.send_message(BOT_SETTING.DESTINATION_CHAT_ID, message.text)
@@ -88,8 +119,39 @@ with TelegramClient(BOT_SETTING.NAME, BOT_SETTING.API_ID, BOT_SETTING.API_HASH) 
                 
                 elif message.text and message.video:
                     log_message("Loading", "Text with Video", f"Text: {message.text[:50]}")
-                    client.send_message(BOT_SETTING.DESTINATION_CHAT_ID, message.text)
-                    log_message("Sent", "Text with Video (Only Text Sent)", f"Text: {message.text[:50]}")
+                    # Download the video file
+                    file_path = client.download_media(message, file=os.path.join(TEMP_DIR, "video"))
+                    if file_path:
+                        log_message("Downloaded", "Video", f"Path: {file_path}")
+                        if not BOT_SETTING.DOWNLOAD_VIDEOS_ONLY:
+                            # Send both text and video to destination group
+                            client.send_file(BOT_SETTING.DESTINATION_CHAT_ID, file_path, caption=message.text)
+                            log_message("Sent", "Text with Video", f"Text: {message.text[:50]}, Video: {file_path}")
+                        else:
+                            log_message("Downloaded Only", "Video", f"Text: {message.text[:50]}, Video: {file_path}")
+                        # Keep the video file on computer (don't delete it)
+                        # os.remove(file_path)  # Commented out to keep videos on computer
+                    else:
+                        # If video download fails, at least send the text
+                        if not BOT_SETTING.DOWNLOAD_VIDEOS_ONLY:
+                            client.send_message(BOT_SETTING.DESTINATION_CHAT_ID, message.text)
+                            log_message("Sent", "Text Only (Video Download Failed)", f"Text: {message.text[:50]}")
+                        else:
+                            log_message("Failed", "Video Download", f"Text: {message.text[:50]}")
+                
+                elif message.video and not message.text:
+                    log_message("Loading", "Video Only")
+                    file_path = client.download_media(message, file=os.path.join(TEMP_DIR, "video"))
+                    if file_path:
+                        log_message("Downloaded", "Video", f"Path: {file_path}")
+                        if not BOT_SETTING.DOWNLOAD_VIDEOS_ONLY:
+                            # Send video to destination group
+                            client.send_file(BOT_SETTING.DESTINATION_CHAT_ID, file_path, caption=message.message)
+                            log_message("Sent", "Video", f"Path: {file_path}")
+                        else:
+                            log_message("Downloaded Only", "Video", f"Path: {file_path}")
+                        # Keep the video file on computer (don't delete it)
+                        # os.remove(file_path)  # Commented out to keep videos on computer
             
             amount_sent += 1
             if amount_sent >= 48:

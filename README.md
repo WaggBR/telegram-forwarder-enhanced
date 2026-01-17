@@ -112,7 +112,7 @@ pip install telethon
 ```
 
 - #### macOS and Linux
-
+ 
 ```bash
 pip3 install telethon
 ```
