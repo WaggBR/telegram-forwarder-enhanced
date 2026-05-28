@@ -60,13 +60,13 @@ cd telegram-forwarder-enhanced
 
 Existem várias formas de obter o `chat_id` de um canal ou grupo. Aqui estão duas maneiras simples:
 
-#### Usando :Cliente Telegram [Kotatogram](https://kotatogram.github.io/download/):
+#### Usando: - Cliente Telegram [Kotatogram](https://kotatogram.github.io/download/):
 
 - Abra o canal ou grupo
 - Acesse a tela de descrição do canal/grupo
 - Copie o `chat_id` exibido abaixo do nome do canal/grupo
 
-#### Usando :Bot Telegram [@username_to_id_bot](https://t.me/username_to_id_bot)
+#### Usando: - Bot Telegram [@username_to_id_bot](https://t.me/username_to_id_bot)
 
 - Abra o bot e inicie ele
 - Encaminhe qualquer mensagem do canal/grupo para o bot
@@ -120,7 +120,7 @@ python3 -m venv myenv
 > **Deve retornar:** `(myenv) C:\Users\`
 
   
-- #### macOS and Linux
+- #### macOS e Linux
 
 ```bash
 source myenv/bin/activate
@@ -170,7 +170,7 @@ python3 bot_ptbr.py
 ## 📋 Instruções de Uso
 Ao executar o script, você será solicitado a escolher se deseja carregar novas mensagens ou reenviar todas as mensagens do canal de origem.
 
-- Digite `y` para copiar apenas as novas mensagens do canal de origem para o destino.
+- Digite `s` para copiar apenas as novas mensagens do canal de origem para o destino.
 - Digite `n` para copiar todas as mensagens novamente da origem para o destino.
 
 >[!NOTE]
@@ -192,4 +192,17 @@ Se você tiver ideias para melhorias, correções ou novos recursos, abra uma *I
 Se você achar este projeto útil, por favor, dê uma estrela ⭐️ ao repositório para demonstrar seu apoio!
 
 <p align="center"> <samp>Based on the original project by Warnigo</samp> </p> 
-<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p> 
+<p align="center">
+  <samp>
+    Enhanced and actively maintained by
+    <a href="https://github.com/WaggBR">WaggBR</a>
+  </samp>
+</p>
+<p align="center">
+  <a href="https://t.me/Wagg13">
+    <img src="https://img.shields.io/badge/Telegram-Contact-2CA5E0?logo=telegram&logoColor=white"/>
+  </a>
+</p>
+
+
+
