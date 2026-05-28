@@ -1,71 +1,101 @@
 <h1 align="center">
-    <samp>Telegram Chanal Copy</samp>
+    <samp>Telegram Forwarder Enhanced</samp>
 </h1>
-
-<p align="center">
-    A script to copy all content from a Telegram channel.  <br />
-    It retrieves and saves all messages, including text, images, and links, from a specified Telegram channel for easy backup and access.
-</p>
 
 <p align="center">
     <img alt="GitHub License" src="https://img.shields.io/github/license/Warnigo/telegram-chanal-copy?style=flat&label=license&labelColor=%23ffffff&color=%23454545">
 </p>
 
----
+## About
+[![About](http://www.randomnoun.com/wpf/shell32-avi/tshell32_160.gif)](#)
+
+Telegram Forwarder Enhanced is a simple and effective tool developed in Python with Telethon to copy and forward messages between Telegram channels and groups quickly, safely, and automatically.
+
+The project supports text, images, videos, and documents, and includes features such as automatic resume after interruptions, duplicate message detection, and protection against Telegram [FloodWait](https://core.telegram.org/api/errors#420-flood).
+
+>> [Versão em Português](README_ptbr.md)
 
 ## ✨ Features
 
-- 📋 Clone any **Telegram channel or group** (supports both public & private).
-- 🔄 You **must be a member** of the source channel or group to copy its content.
-- 🛠 Automatically handles text, images, PDFs, and videos for efficient backup.
+- 📋 Clones a **Telegram channel or group** (compatible public or private channels/groups).
+- 🔄 You **must be a member** of the channel or group to copy its content.
+- 🛠 Supports text, images, PDFs, and videos.
+- ⏱ Safe execution flow with random pauses to avoid flooding.
+- 🆔 Message ID listing to prevent duplicate sending.
 
----
+## 🚀 Improvements in This Version
 
-### 📂 Clone this Repository
+- Fixed media sending failures
+- Automatic resume after interruptions
+- Better FloodWait handling
+- Anti-duplication system
+- Improved Telethon stability
+- Compatibility with recent versions
 
-```sh
-git clone https://github.com/Warnigo/telegram-chanal-copy.git
+## 🤝 Credits
 
-cd telegram-chanal-copy
+This project is a fork of the original [telegram-chanal-copy](https://github.com/warnigo/telegram-chanal-copy) repository created by Warnigo. We thank the original author for their contribution. All original copyrights are retained under the MIT license.
+
+## Installation
+
+### 📂 Clone the Repository
+
+```bash
+git clone https://github.com/WaggBR/telegram-forwarder-enhanced.git
+
+cd telegram-forwarder-enhanced
 ```
 
-## 🛠 Configuration
+## 🛠 Settings
 
-### 1. Edit [config.py](./config.py) file before use
+### 1. Edit the [config.py](./config.py) file before running.
 
-- `API_ID` and `API_HASH` - Get those from [my.telegram.org](http://my.telegram.org/)
-- `PHONE_NUMBER` - Give phone number with country code (ex. +998901234567)
-- `NAME` - Give any name what you want
-- `SOURCE_CHAT_ID` and `DESTINATION_CHAT_ID` - Get those from [@username_idbot](https://telegram.dog/username_idbot)
+- `API_ID` and `API_HASH` - Get these values from [my.telegram.org](http://my.telegram.org/)
+- `PHONE_NUMBER` - Your phone number with country code (e.g.: +55199999999)
+- `NAME` - A name of your choice
+- `SOURCE_CHAT_ID` and `DESTINATION_CHAT_ID` - IDs obtained from Telegram channels/groups.
 
-#### Example `config.py`:
+### How to Get the `chat_id` of a Channel or Group
+
+There are several ways to get the `chat_id` of a channel or group. Here are two simple methods:
+
+#### Using the Telegram Client [Kotatogram](https://kotatogram.github.io/download/):
+
+- Open the channel or group
+- Go to the channel/group description screen
+- Copy the `chat_id` displayed below the channel/group name
+
+#### Using the Telegram Bot [@username_to_id_bot](https://t.me/username_to_id_bot)
+
+- Open the bot and start it
+- Forward any message from the channel/group to the bot
+- The bot will reply with the sender ID
+- Copy the `chat_id` exactly as displayed (including the minus sign)
+
+> [!NOTE]
+> Telegram channels and supergroups usually start with `-100`.
+
+#### `config.py` Example:
 
 ```python
 class Config:
-    API_ID = "12345678"            # Your API ID
-    API_HASH = "your_api_hash"     # Your API Hash
-    PHONE_NUMBER = "+998901234567" # Your phone number (with country code)
-    NAME = "telegram-channel"      # Any name you choose
-    SOURCE_CHAT_ID = -1001234567890 # Source channel/group ID
+    API_ID = "12345678"                  # Your API ID
+    API_HASH = "your_api_hash"           # Your API Hash
+    PHONE_NUMBER = "+5511999999999"      # Your number with country code
+    NAME = "telegram-forwarder"          # Chosen name
+    SOURCE_CHAT_ID = -1001234567890      # Source channel/group ID
     DESTINATION_CHAT_ID = -1009876543210 # Destination channel/group ID
 ```
 
+
 >[!NOTE]
-> Make sure to replace the placeholders with your actual credentials.
+>Make sure to replace the placeholders with your real credentials.
 
-### 2. Create the config.py file
-
-If it doesn't exist, create the configuration file:
-
-```bash
-touch config.py
-```
 
 ## 🐍 Virtual Environment Setup
 
-It's highly recommended to use a virtual environment to avoid dependency conflicts.
+Using a virtual environment is highly recommended to avoid dependency conflicts.
 
-### 1. Create a Virtual Environment
 - #### Windows
 
 ```sh
@@ -78,13 +108,16 @@ python -m venv myenv
 python3 -m venv myenv
 ```
 
-### Activate Virtual Environment
+### Activate the Virtual Environment
 
 - #### Windows
 
 ```powershell
 .\myenv\Scripts\activate
 ```
+> [!NOTE]
+> **It should return:** `(myenv) C:\Users\`
+
 
 - #### macOS and Linux
 
@@ -93,15 +126,15 @@ source myenv/bin/activate
 ```
 
 > [!NOTE]
-> To deactivate the virtual environment at any time, simply run:
+> To deactivate the virtual environment at any time, simply run the following command:
 
 ```bash
 deactivate
 ```
 
-## 📦 Install Dependencies
+## 📦 Dependency Installation
 
-The script relies on the Telethon library to interact with Telegram.
+The script uses the Telethon library to interact with Telegram.
 
 ### Install [telethon](https://pypi.org/project/Telethon/)
 
@@ -123,7 +156,7 @@ pip3 install telethon
 
 - #### Windows
 
-```powershell
+```powershell or CMD
 python bot.py
 ```
 
@@ -134,20 +167,28 @@ python3 bot.py
 ```
 
 ## 📋 Usage Instructions
-Upon running the script, you'll be prompted to choose whether to load new messages or resend all messages from the source channel.
+When running the script, you will be asked whether you want to load new messages or resend all messages from the source channel.
 
-- Enter `y` to only copy new messages from the source channel to the destination.
-- Enter `n` to copy all messages again from the source to the destination.
+- Type `y` to copy only new messages from the source channel to the destination.
+- Type `n` to copy all messages again from the source to the destination.
 
 >[!NOTE]
-> If you interrupt the script and restart it, you can choose to continue from where you left off or start over.
+> If you interrupt the script and restart it, you can choose to continue from where you left off or start from scratch.
 
 ## 🛠 Troubleshooting
-- Make sure you have joined both the source and destination channels/groups before running the script.
+- Make sure you have joined the source and destination channels/groups before running the script.
 - Double-check your API credentials if you encounter authentication errors.
-If the script stops unexpectedly, you can rerun it. Use the y/n prompt to control what content is copied.
+  If the script stops unexpectedly, you can run it again.
+  Use the y/n prompt to control which content will be copied.
+
+## 🤝 Community Contributions
+
+Pull Requests are welcome!
+
+If you have ideas for improvements, fixes, or new features, open an *Issue* for discussion or submit a *Pull Request* directly.
 
 ## ❤️ Support
-If you find this project useful, please ⭐️ star the repository to show your support!
+If you find this project useful, please give the repository a star ⭐️ to show your support!
 
-<p align="center"> <samp>Made with ❤️ by Warnigo</samp> </p> 
+<p align="center"> <samp>Based on the original project by Warnigo</samp> </p>
+<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p>

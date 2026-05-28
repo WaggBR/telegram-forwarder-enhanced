@@ -96,22 +96,22 @@ with TelegramClient(
     last_forwarded_id = state.get("last_forwarded_id", 2008)
 
     print("\n============================")
-    print(" Telegram Forwarder ")
+    print(" Telegram Forwarder Enhanced ")
     print("============================\n")
 
-    print(f"Last forwarded ID: {last_forwarded_id}")
-    print(f"Tracked messages: {len(forwarded_messages)}\n")
+    print(f"Último ID encaminhado: {last_forwarded_id}")
+    print(f"Mensagens rastreadas: {len(forwarded_messages)}\n")
 
     # ==========================================
     # DUPLICATE MEDIA CHECK OPTION
     # ==========================================
     ignore_duplicates = (
         input(
-            "Ignore media already forwarded by the script? (y/n): "
+            "Ignorar mídias já encaminhadas pelo script? (s/n): "
         )
         .strip()
         .lower()
-        == "y"
+        == "s"
     )
 
     # ==========================================
@@ -119,11 +119,11 @@ with TelegramClient(
     # ==========================================
     resume_mode = (
         input(
-            "Continue from where script stopped? (y/n): "
+            "Continuar de onde o script parou? (s/n): "
         )
         .strip()
         .lower()
-        == "y"
+        == "s"
     )
 
     # ==========================================
@@ -133,8 +133,8 @@ with TelegramClient(
 
         log_message(
             "Info",
-            "Resume Mode",
-            f"Starting after ID {last_forwarded_id}"
+            "Modo Continuação",
+            f"Iniciando após o ID {last_forwarded_id}"
         )
 
         messages = client.iter_messages(
@@ -147,8 +147,8 @@ with TelegramClient(
 
         log_message(
             "Info",
-            "Full Mode",
-            "Reading all messages"
+            "Modo Completo",
+            "Lendo todas as mensagens"
         )
 
         messages = client.iter_messages(
@@ -173,7 +173,7 @@ with TelegramClient(
             if isinstance(message, MessageService):
                 continue
 
-            print(f"\nProcessing message ID: {message.id}")
+            print(f"\nProcessando mensagem ID:: {message.id}")
 
             # Ignore empty messages
             if not message.message and not message.media:
@@ -187,8 +187,8 @@ with TelegramClient(
                 if message.id in forwarded_messages:
 
                     log_message(
-                        "Skipped",
-                        "Already Forwarded",
+                        "Ignorado",
+                        "Já Encaminhada",
                         f"ID: {message.id}"
                     )
 
@@ -198,8 +198,8 @@ with TelegramClient(
             # FORWARD MESSAGE
             # ==========================================
             log_message(
-                "Forwarding",
-                "Message",
+                "Encaminhando",
+                "Mensagem",
                 f"ID: {message.id}"
             )
 
@@ -209,8 +209,8 @@ with TelegramClient(
             )
 
             log_message(
-                "Sent",
-                "Message",
+                "Enviado",
+                "Mensagem",
                 f"ID: {message.id}"
             )
 
@@ -239,9 +239,9 @@ with TelegramClient(
                 rate = 0
 
             print(
-                f"\nRuntime: {elapsed_time} | "
-                f"Sent: {amount_sent} | "
-                f"Avg: {rate:.1f}/min"
+                f"\nTempo rodando: {elapsed_time} | "
+                f"Enviadas: {amount_sent} | "
+                f"Média: {rate:.1f}/min"
             )
 
             # ==========================================
@@ -256,8 +256,8 @@ with TelegramClient(
                 delay = random.uniform(2, 5)
 
             log_message(
-                "Sleeping",
-                "Delay",
+                "Aguardando",
+                "Intervalo",
                 f"{delay:.2f} seconds"
             )
 
@@ -271,8 +271,8 @@ with TelegramClient(
                 long_break = random.uniform(20, 45)
 
                 log_message(
-                    "Paused",
-                    "Long Break",
+                    "Pausado",
+                    "Pausa Longa",
                     f"{long_break:.2f} seconds"
                 )
 
@@ -287,8 +287,8 @@ with TelegramClient(
 
             log_message(
                 "FloodWait",
-                "Telegram Limit",
-                f"Waiting {wait_time} seconds"
+                "Limite do Telegram",
+                f"Aguardando {wait_time} seconds"
             )
 
             time.sleep(wait_time)
@@ -299,16 +299,16 @@ with TelegramClient(
         except Exception as e:
 
             log_message(
-                "Error",
-                "Forward Failed",
+                "Erro",
+                "Falha no Encaminhamento",
                 str(e)
             )
 
             error_wait = random.uniform(15, 30)
 
             log_message(
-                "Sleeping",
-                "Error Delay",
+                "Aguardando",
+                "Atraso por Erro",
                 f"{error_wait:.2f} seconds"
             )
 
@@ -320,10 +320,10 @@ with TelegramClient(
     final_runtime = get_elapsed_time(script_start_time)
 
     print("\n============================")
-    print(" FORWARD FINISHED ")
+    print(" ENCAMINHAMENTO FINALIZADO ")
     print("============================")
-    print(f"Total sent: {amount_sent}")
-    print(f"Total runtime: {final_runtime}")
+    print(f"Total enviado: {amount_sent}")
+    print(f"Tempo total: {final_runtime}")
 
     if amount_sent == 0:
         print("--Sem novas mensagens.--")
