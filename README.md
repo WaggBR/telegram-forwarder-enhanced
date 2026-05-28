@@ -2,6 +2,10 @@
     <samp>Telegram Forwarder Enhanced</samp>
 </h1>
 
+
+![telegram-forwarder-enhanced](/images/feature.png)
+
+
 <p align="center">
     <img alt="GitHub License" src="https://img.shields.io/github/license/Warnigo/telegram-chanal-copy?style=flat&label=license&labelColor=%23ffffff&color=%23454545">
 </p>
@@ -190,5 +194,15 @@ If you have ideas for improvements, fixes, or new features, open an *Issue* for 
 ## ❤️ Support
 If you find this project useful, please give the repository a star ⭐️ to show your support!
 
-<p align="center"> <samp>Based on the original project by Warnigo</samp> </p>
-<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p>
+<p align="center"> <samp>Based on the original project by Warnigo</samp> </p> 
+<p align="center">
+  <samp>
+    Enhanced and actively maintained by
+    <a href="https://github.com/WaggBR">WaggBR</a>
+  </samp>
+</p>
+<p align="center">
+  <a href="https://t.me/Wagg13">
+    <img src="https://img.shields.io/badge/Telegram-Contact-2CA5E0?logo=telegram&logoColor=white"/>
+  </a>
+</p>
