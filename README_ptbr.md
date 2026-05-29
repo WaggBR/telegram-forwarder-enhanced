@@ -15,6 +15,16 @@ Telegram Forwarder Enhanced é uma ferramenta simples e eficaz desenvolvida em P
 
 O projeto suporta textos, imagens, vídeos e documentos, além de incluir recursos como retomada automática após interrupções, detecção de mensagens duplicadas e proteção contra [FloodWait](https://core.telegram.org/api/errors#420-flood) do Telegram.
 
+## ⚠️ Aviso Legal e Riscos de Uso
+
+Este script utiliza a **API MTProto do Telegram via Telethon com credenciais de conta de usuário** (não uma conta bot). Isso significa que ele opera como se fosse você logado no Telegram, o que permite acessar canais privados e encaminhar conteúdo.
+
+O Telegram pode considerar o uso automatizado nesse modelo uma violação dos seus [Termos de Serviço](https://telegram.org/tos), especialmente em uso de larga escala ou cópia massiva de canais. Isso pode resultar em **banimento temporário ou permanente da conta e/ou do `api_id`**.
+
+**Comportamento adicional a considerar:**
+- O encaminhamento via `forward_messages` depende de como o Telegram resolve referências de mídia no servidor. Esse comportamento pode mudar em futuras atualizações da API do Telegram ou da biblioteca Telethon sem aviso prévio, o que pode causar falhas silenciosas ou quebra de funcionalidade.
+
+**Use por sua própria conta e risco. O autor não se responsabiliza por banimentos, perda de dados, ou qualquer consequência decorrente do uso desta ferramenta.**
 
 ## ✨ Funcionalidades
 
