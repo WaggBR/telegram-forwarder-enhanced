@@ -47,7 +47,7 @@ def load_state():
 
     if not os.path.exists(STATE_FILE):
         return {
-            "last_forwarded_id": 2008,
+            "last_forwarded_id": 0,
             "forwarded_messages": []
         }
 
