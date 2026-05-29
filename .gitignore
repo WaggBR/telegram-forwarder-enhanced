@@ -1,6 +1,8 @@
 /config.py
 /telegram-chanel.session
 /telegram-chanel.session-journal
+/*.session
+/*.session-journal
 
 temp_media
 __pycache__
