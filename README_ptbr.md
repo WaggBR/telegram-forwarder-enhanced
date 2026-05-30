@@ -34,6 +34,9 @@ O Telegram pode considerar o uso automatizado nesse modelo uma violação dos se
 - ⏱ Fluxo de execução seguro com pausas aleatórias para evitar flood.
 - 🆔 Listagem de IDs de mensagem evitando envio duplicado
 
+> **📤 Sobre o encaminhamento:** O script usa `forward_messages` da API do Telegram, encaminhando mensagens diretamente entre canais no servidor — sem baixar mídia localmente. Isso minimiza consumo de rede e armazenamento, mas as mensagens aparecerão com a tag "Encaminhado de" no destino. Esse comportamento é intencional.
+
+
 ## 🚀 Melhorias desta versão
 
 - Correção de falhas no envio de mídia
