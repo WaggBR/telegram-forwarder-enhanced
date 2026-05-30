@@ -171,13 +171,13 @@ pip3 install telethon
 - #### Windows
 
 ```powershell ou CMD
-python bot_ptbr.py
+python bot.py
 ```
 
 - #### macOS e Linux
 
 ```bash
-python3 bot_ptbr.py
+python3 bot.py
 ```
 
 ## 📋 Instruções de Uso
