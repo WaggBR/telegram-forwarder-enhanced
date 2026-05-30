@@ -29,6 +29,9 @@ Telegram may consider automated usage of this type a violation of its [Terms of 
 
 **Use at your own risk. The author takes no responsibility for bans, data loss, or any consequences resulting from the use of this tool.**
 
+> **📤 About forwarding:** The script uses Telegram's `forward_messages` API method, forwarding messages directly between channels server-side — without downloading media locally. This minimizes network usage and local storage, but messages will appear with a "Forwarded from" tag at the destination. This behavior is intentional.
+
+
 ## ✨ Features
 
 - 📋 Clones a **Telegram channel or group** (compatible public or private channels/groups).
