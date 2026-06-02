@@ -15,16 +15,6 @@ Telegram Forwarder Enhanced é uma ferramenta simples e eficaz desenvolvida em P
 
 O projeto suporta textos, imagens, vídeos e documentos, além de incluir recursos como retomada automática após interrupções, detecção de mensagens duplicadas e proteção contra [FloodWait](https://core.telegram.org/api/errors#420-flood) do Telegram.
 
-## ⚠️ Aviso Legal e Riscos de Uso
-
-Este script utiliza a **API MTProto do Telegram via Telethon com credenciais de conta de usuário** (não uma conta bot). Isso significa que ele opera como se fosse você logado no Telegram, o que permite acessar canais privados e encaminhar conteúdo.
-
-O Telegram pode considerar o uso automatizado nesse modelo uma violação dos seus [Termos de Serviço](https://telegram.org/tos), especialmente em uso de larga escala ou cópia massiva de canais. Isso pode resultar em **banimento temporário ou permanente da conta e/ou do `api_id`**.
-
-**Comportamento adicional a considerar:**
-- O encaminhamento via `forward_messages` depende de como o Telegram resolve referências de mídia no servidor. Esse comportamento pode mudar em futuras atualizações da API do Telegram ou da biblioteca Telethon sem aviso prévio, o que pode causar falhas silenciosas ou quebra de funcionalidade.
-
-**Use por sua própria conta e risco. O autor não se responsabiliza por banimentos, perda de dados, ou qualquer consequência decorrente do uso desta ferramenta.**
 
 ## ✨ Funcionalidades
 
@@ -33,9 +23,6 @@ O Telegram pode considerar o uso automatizado nesse modelo uma violação dos se
 - 🛠 Suporte a texto, imagens, PDFs e vídeos.
 - ⏱ Fluxo de execução seguro com pausas aleatórias para evitar flood.
 - 🆔 Listagem de IDs de mensagem evitando envio duplicado
-
-> **📤 Sobre o encaminhamento:** O script usa `forward_messages` da API do Telegram, encaminhando mensagens diretamente entre canais no servidor — sem baixar mídia localmente. Isso minimiza consumo de rede e armazenamento, mas as mensagens aparecerão com a tag "Encaminhado de" no destino. Esse comportamento é intencional.
-
 
 ## 🚀 Melhorias desta versão
 
@@ -73,13 +60,13 @@ cd telegram-forwarder-enhanced
 
 Existem várias formas de obter o `chat_id` de um canal ou grupo. Aqui estão duas maneiras simples:
 
-#### Usando: - Cliente Telegram [Kotatogram](https://kotatogram.github.io/download/):
+#### Usando :Cliente Telegram [Kotatogram](https://kotatogram.github.io/download/):
 
 - Abra o canal ou grupo
 - Acesse a tela de descrição do canal/grupo
 - Copie o `chat_id` exibido abaixo do nome do canal/grupo
 
-#### Usando: - Bot Telegram [@username_to_id_bot](https://t.me/username_to_id_bot)
+#### Usando :Bot Telegram [@username_to_id_bot](https://t.me/username_to_id_bot)
 
 - Abra o bot e inicie ele
 - Encaminhe qualquer mensagem do canal/grupo para o bot
@@ -133,7 +120,7 @@ python3 -m venv myenv
 > **Deve retornar:** `(myenv) C:\Users\`
 
   
-- #### macOS e Linux
+- #### macOS and Linux
 
 ```bash
 source myenv/bin/activate
@@ -189,6 +176,30 @@ Ao executar o script, você será solicitado a escolher se deseja carregar novas
 >[!NOTE]
 > Se você interromper o script e reiniciá-lo, poderá optar por continuar de onde parou ou começar do zero.
 
+## 🔄 Como o Menu Funciona
+
+Ao executar o script, você será guiado por uma sequência de opções:
+
+1. **Seleção de idioma** — Escolha entre English e Português (BR).
+2. **Ignorar duplicatas** — Se mensagens já encaminhadas pelo script devem ser puladas.
+3. **Modo watch** — Se o script deve continuar rodando e verificar novas mensagens após o encaminhamento inicial.
+   - Se ativado, você será perguntado sobre o **intervalo de verificação em minutos** e o **tempo máximo de execução em horas** (0 = sem limite).
+4. **Modo resume** *(apenas se o modo watch estiver desativado)* — Se deseja continuar do último ID encaminhado ou começar do zero.
+
+> Se optar por começar do zero sem o filtro de duplicatas, o script pedirá confirmação antes de prosseguir, pois todas as mensagens serão reencaminhadas.
+
+---
+
+## 👁 Modo Watch
+
+O modo watch mantém o script em execução após o encaminhamento inicial, verificando periodicamente se há novas mensagens no canal de origem e encaminhando-as automaticamente.
+
+- **Intervalo de verificação:** de quanto em quanto tempo o script verifica novas mensagens (em minutos).
+- **Tempo máximo:** o script se encerra automaticamente após o número de horas definido. Use `0` para sem limite.
+- Para encerrar manualmente a qualquer momento, pressione `Ctrl+C`.
+
+> No modo watch, o filtro de duplicatas é sempre ativo — mensagens já encaminhadas nunca são reenviadas.
+
 ## 🛠 Solução de problemas
 - Certifique-se de ter entrado nos canais/grupos de origem e destino antes de executar o script.
 - Verifique novamente suas credenciais de API se encontrar erros de autenticação.
@@ -205,17 +216,4 @@ Se você tiver ideias para melhorias, correções ou novos recursos, abra uma *I
 Se você achar este projeto útil, por favor, dê uma estrela ⭐️ ao repositório para demonstrar seu apoio!
 
 <p align="center"> <samp>Based on the original project by Warnigo</samp> </p> 
-<p align="center">
-  <samp>
-    Enhanced and actively maintained by
-    <a href="https://github.com/WaggBR">WaggBR</a>
-  </samp>
-</p>
-<p align="center">
-  <a href="https://t.me/Wagg13">
-    <img src="https://img.shields.io/badge/Telegram-Contact-2CA5E0?logo=telegram&logoColor=white"/>
-  </a>
-</p>
-
-
-
+<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p> 

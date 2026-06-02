@@ -29,6 +29,15 @@ STRINGS = {
         "ignore_input":        "y",
         "resume_prompt":       "Continue from where script stopped? (y/n): ",
         "resume_input":        "y",
+        "watch_prompt":        "Enable watch mode? Script will keep checking for new messages. (y/n): ",
+        "watch_interval":      "Check interval in minutes (e.g. 5): ",
+        "watch_max_hours":     "Maximum runtime in hours (0 = no limit): ",
+        "watch_active":        "Watch Mode Active",
+        "watch_checking":      "Checking for new messages...",
+        "watch_none":          "No new messages. Waiting",
+        "watch_found":         "New messages found. Forwarding...",
+        "watch_timeout":       "Maximum runtime reached. Stopping.",
+        "watch_minutes":       "minutes",
         "resume_mode":         "Resume Mode",
         "resume_detail":       "Starting after ID",
         "full_mode":           "Full Mode",
@@ -60,6 +69,7 @@ STRINGS = {
         "warn_full_detail":    "All messages will be re-forwarded, including already sent ones.",
         "warn_confirm":        "Confirm? (y/n): ",
         "cancelled":           "Operation cancelled.",
+        "restart_prompt":      "Run again with new options? (y/n): ",
     },
     "pt": {
         "title":               " Telegram Forwarder ",
@@ -69,6 +79,15 @@ STRINGS = {
         "ignore_input":        "s",
         "resume_prompt":       "Continuar de onde o script parou? (s/n): ",
         "resume_input":        "s",
+        "watch_prompt":        "Ativar modo watch? O script ficará verificando novas mensagens. (s/n): ",
+        "watch_interval":      "Intervalo de verificação em minutos (ex: 5): ",
+        "watch_max_hours":     "Tempo máximo de execução em horas (0 = sem limite): ",
+        "watch_active":        "Modo Watch Ativo",
+        "watch_checking":      "Verificando novas mensagens...",
+        "watch_none":          "Sem novas mensagens. Aguardando",
+        "watch_found":         "Novas mensagens encontradas. Encaminhando...",
+        "watch_timeout":       "Tempo máximo atingido. Encerrando.",
+        "watch_minutes":       "minutos",
         "resume_mode":         "Modo Continuação",
         "resume_detail":       "Iniciando após o ID",
         "full_mode":           "Modo Completo",
@@ -100,6 +119,7 @@ STRINGS = {
         "warn_full_detail":    "Todas as mensagens serão reencaminhadas, incluindo as já enviadas.",
         "warn_confirm":        "Confirmar? (s/n): ",
         "cancelled":           "Operação cancelada.",
+        "restart_prompt":      "Executar novamente com novas opções? (s/n): ",
     }
 }
 
@@ -110,6 +130,7 @@ STRINGS = {
 def select_language():
     print("\n============================")
     print(" Telegram Forwarder Enhanced ")
+    print("---by Wagg13---") 
     print("============================")
     print("\n[1] English")
     print("[2] Português (BR)")
@@ -172,16 +193,92 @@ def has_media(message):
 
 
 # ==========================================
-# MAIN
+# FORWARD LOOP
 # ==========================================
-lang = select_language()
-s = STRINGS[lang]
+def forward_messages(client, s, state, forwarded_messages, script_start_time):
+    """Encaminha mensagens a partir do último ID salvo. Retorna total enviado."""
 
-with TelegramClient(
-    BOT_SETTING.NAME,
-    BOT_SETTING.API_ID,
-    BOT_SETTING.API_HASH
-) as client:
+    last_forwarded_id = state.get("last_forwarded_id", 0)
+    amount_sent = 0
+
+    messages = client.iter_messages(
+        BOT_SETTING.SOURCE_CHAT_ID,
+        min_id=last_forwarded_id,
+        reverse=True
+    )
+
+    for message in messages:
+
+        try:
+            if isinstance(message, MessageService):
+                continue
+
+            print(f"\n{s['processing']}: {message.id}")
+
+            if not message.message and not message.media:
+                continue
+
+            if message.id in forwarded_messages:
+                log_message(s, s["skipped"], s["already_forwarded"], f"ID: {message.id}")
+                continue
+
+            log_message(s, s["forwarding"], s["message"], f"ID: {message.id}")
+
+            client.forward_messages(
+                BOT_SETTING.DESTINATION_CHAT_ID,
+                message
+            )
+
+            log_message(s, s["sent"], s["message"], f"ID: {message.id}")
+
+            forwarded_messages.add(message.id)
+            state["last_forwarded_id"] = message.id
+            state["forwarded_messages"] = list(forwarded_messages)
+
+            amount_sent += 1
+
+            if amount_sent % 10 == 0:
+                save_state(state)
+
+            elapsed_time = get_elapsed_time(script_start_time)
+            elapsed_seconds = time.time() - script_start_time
+            rate = (amount_sent / elapsed_seconds * 60) if elapsed_seconds > 0 else 0
+
+            print(
+                f"\n{s['runtime']}: {elapsed_time} | "
+                f"{s['sent']}: {amount_sent} | "
+                f"{s['avg']}: {rate:.1f}/min"
+            )
+
+            delay = random.uniform(4, 9) if has_media(message) else random.uniform(2, 5)
+            log_message(s, s["sleeping"], s["delay"], f"{delay:.2f} {s['seconds']}")
+            time.sleep(delay)
+
+            if amount_sent % 20 == 0:
+                long_break = random.uniform(20, 45)
+                log_message(s, s["paused"], s["long_break"], f"{long_break:.2f} {s['seconds']}")
+                time.sleep(long_break)
+
+        except FloodWaitError as e:
+            save_state(state)
+            wait_time = e.seconds + random.randint(10, 25)
+            log_message(s, s["floodwait"], s["tg_limit"], f"{s['waiting']} {wait_time} {s['seconds']}")
+            time.sleep(wait_time)
+
+        except Exception as e:
+            save_state(state)
+            log_message(s, s["error"], s["forward_failed"], str(e))
+            error_wait = random.uniform(15, 30)
+            log_message(s, s["sleeping"], s["error_delay"], f"{error_wait:.2f} {s['seconds']}")
+            time.sleep(error_wait)
+
+    return amount_sent
+
+
+# ==========================================
+# RUN
+# ==========================================
+def run(client, s):
 
     state = load_state()
     forwarded_messages = set(state.get("forwarded_messages", []))
@@ -203,139 +300,99 @@ with TelegramClient(
         == s["ignore_input"]
     )
 
+    # No modo watch, duplicatas são sempre ignoradas por design.
+    # A pergunta abaixo só aparece se watch estiver desativado.
+
     # ==========================================
-    # RESUME OPTION
+    # WATCH MODE OPTION
     # ==========================================
-    resume_mode = (
-        input(s["resume_prompt"])
+    watch_mode = (
+        input(s["watch_prompt"])
         .strip()
         .lower()
-        == s["resume_input"]
+        == s["ignore_input"]
     )
 
-    # ==========================================
-    # WARN: FULL MODE WITHOUT DUPLICATE FILTER
-    # ==========================================
-    if not ignore_duplicates and not resume_mode:
-        print(f"\n{s['warn_full_no_filter']}")
-        print(s["warn_full_detail"])
-        confirm = input(s["warn_confirm"]).strip().lower()
-        if confirm != s["ignore_input"]:
-            print(s["cancelled"])
-            exit()
+    watch_interval = 5
+    max_hours = 0
 
-    # ==========================================
-    # LOAD MESSAGES
-    # ==========================================
-    if resume_mode and last_forwarded_id > 0:
-        log_message(s, "Info", s["resume_mode"], f"{s['resume_detail']} {last_forwarded_id}")
-        messages = client.iter_messages(
-            BOT_SETTING.SOURCE_CHAT_ID,
-            min_id=last_forwarded_id,
-            reverse=True
-        )
-    else:
-        log_message(s, "Info", s["full_mode"], s["full_detail"])
-        messages = client.iter_messages(
-            BOT_SETTING.SOURCE_CHAT_ID,
-            reverse=True
-        )
-
-    amount_sent = 0
-    script_start_time = time.time()
-
-    # ==========================================
-    # PROCESS LOOP
-    # ==========================================
-    for message in messages:
+    if watch_mode:
+        try:
+            watch_interval = max(1, int(input(s["watch_interval"]).strip()))
+        except ValueError:
+            watch_interval = 5
 
         try:
-            if isinstance(message, MessageService):
-                continue
+            max_hours = max(0, float(input(s["watch_max_hours"]).strip()))
+        except ValueError:
+            max_hours = 0
 
-            print(f"\n{s['processing']}: {message.id}")
+    # ==========================================
+    # RESUME OPTION (apenas sem watch)
+    # ==========================================
+    if not watch_mode:
+        resume_mode = (
+            input(s["resume_prompt"])
+            .strip()
+            .lower()
+            == s["resume_input"]
+        )
 
-            if not message.message and not message.media:
-                continue
+        if not ignore_duplicates and not resume_mode:
+            print(f"\n{s['warn_full_no_filter']}")
+            print(s["warn_full_detail"])
+            confirm = input(s["warn_confirm"]).strip().lower()
+            if confirm != s["ignore_input"]:
+                print(s["cancelled"])
+                return
 
-            # ==========================================
-            # DUPLICATE CHECK
-            # ==========================================
-            if ignore_duplicates:
-                if message.id in forwarded_messages:
-                    log_message(s, s["skipped"], s["already_forwarded"], f"ID: {message.id}")
-                    continue
+        if not resume_mode:
+            state["last_forwarded_id"] = 0
+            forwarded_messages = set()
+            state["forwarded_messages"] = []
 
-            # ==========================================
-            # FORWARD MESSAGE
-            # ==========================================
-            log_message(s, s["forwarding"], s["message"], f"ID: {message.id}")
+    script_start_time = time.time()
+    total_sent = 0
 
-            client.forward_messages(
-                BOT_SETTING.DESTINATION_CHAT_ID,
-                message
-            )
+    # ==========================================
+    # WATCH MODE LOOP
+    # ==========================================
+    if watch_mode:
+        max_seconds = max_hours * 3600 if max_hours > 0 else None
+        log_message(s, "Info", s["watch_active"], "")
 
-            log_message(s, s["sent"], s["message"], f"ID: {message.id}")
+        while True:
 
-            # ==========================================
-            # UPDATE STATE
-            # ==========================================
-            forwarded_messages.add(message.id)
-            state["last_forwarded_id"] = message.id
-            state["forwarded_messages"] = list(forwarded_messages)
+            # Verifica timeout
+            if max_seconds and (time.time() - script_start_time) >= max_seconds:
+                log_message(s, "Info", s["watch_timeout"], "")
+                break
 
-            amount_sent += 1
+            log_message(s, "Info", s["watch_checking"], "")
 
-            if amount_sent % 10 == 0:
-                save_state(state)
+            sent = forward_messages(client, s, state, forwarded_messages, script_start_time)
+            total_sent += sent
 
-            # ==========================================
-            # RUNTIME STATUS
-            # ==========================================
-            elapsed_time = get_elapsed_time(script_start_time)
-            elapsed_seconds = time.time() - script_start_time
-            rate = (amount_sent / elapsed_seconds * 60) if elapsed_seconds > 0 else 0
+            if sent > 0:
+                log_message(s, "Info", s["watch_found"], f"+{sent}")
+            else:
+                log_message(
+                    s, "Info", s["watch_none"],
+                    f"{watch_interval} {s['watch_minutes']}"
+                )
 
-            print(
-                f"\n{s['runtime']}: {elapsed_time} | "
-                f"{s['sent']}: {amount_sent} | "
-                f"{s['avg']}: {rate:.1f}/min"
-            )
+            # Aguarda intervalo, verificando timeout a cada segundo
+            for _ in range(watch_interval * 60):
+                if max_seconds and (time.time() - script_start_time) >= max_seconds:
+                    break
+                time.sleep(1)
 
-            # ==========================================
-            # SMART HUMAN DELAYS
-            # ==========================================
-            delay = random.uniform(4, 9) if has_media(message) else random.uniform(2, 5)
-            log_message(s, s["sleeping"], s["delay"], f"{delay:.2f} {s['seconds']}")
-            time.sleep(delay)
-
-            # ==========================================
-            # LONG BREAKS
-            # ==========================================
-            if amount_sent % 20 == 0:
-                long_break = random.uniform(20, 45)
-                log_message(s, s["paused"], s["long_break"], f"{long_break:.2f} {s['seconds']}")
-                time.sleep(long_break)
-
-        # ==========================================
-        # FLOOD WAIT HANDLER
-        # ==========================================
-        except FloodWaitError as e:
-            save_state(state)
-            wait_time = e.seconds + random.randint(10, 25)
-            log_message(s, s["floodwait"], s["tg_limit"], f"{s['waiting']} {wait_time} {s['seconds']}")
-            time.sleep(wait_time)
-
-        # ==========================================
-        # GENERAL ERRORS
-        # ==========================================
-        except Exception as e:
-            save_state(state)
-            log_message(s, s["error"], s["forward_failed"], str(e))
-            error_wait = random.uniform(15, 30)
-            log_message(s, s["sleeping"], s["error_delay"], f"{error_wait:.2f} {s['seconds']}")
-            time.sleep(error_wait)
+    # ==========================================
+    # NORMAL MODE
+    # ==========================================
+    else:
+        log_message(s, "Info", s["full_mode"] if state["last_forwarded_id"] == 0 else s["resume_mode"], "")
+        total_sent = forward_messages(client, s, state, forwarded_messages, script_start_time)
 
     # ==========================================
     # FINAL SUMMARY
@@ -346,10 +403,30 @@ with TelegramClient(
     print("\n============================")
     print(s["finished"])
     print("============================")
-    print(f"{s['total_sent']}: {amount_sent}")
+    print(f"{s['total_sent']}: {total_sent}")
     print(f"{s['total_runtime']}: {final_runtime}")
 
-    if amount_sent == 0:
+    if total_sent == 0:
         print(s["no_messages"])
 
     print("============================\n")
+
+
+# ==========================================
+# MAIN
+# ==========================================
+lang = select_language()
+s = STRINGS[lang]
+
+with TelegramClient(
+    BOT_SETTING.NAME,
+    BOT_SETTING.API_ID,
+    BOT_SETTING.API_HASH
+) as client:
+
+    while True:
+        run(client, s)
+
+        restart = input(s["restart_prompt"]).strip().lower()
+        if restart != s["ignore_input"]:
+            break

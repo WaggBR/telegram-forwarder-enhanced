@@ -2,10 +2,6 @@
     <samp>Telegram Forwarder Enhanced</samp>
 </h1>
 
-
-![telegram-forwarder-enhanced](/images/feature.png)
-
-
 <p align="center">
     <img alt="GitHub License" src="https://img.shields.io/github/license/Warnigo/telegram-chanal-copy?style=flat&label=license&labelColor=%23ffffff&color=%23454545">
 </p>
@@ -17,20 +13,7 @@ Telegram Forwarder Enhanced is a simple and effective tool developed in Python w
 
 The project supports text, images, videos, and documents, and includes features such as automatic resume after interruptions, duplicate message detection, and protection against Telegram [FloodWait](https://core.telegram.org/api/errors#420-flood).
 
->> [Versão em Português🇧🇷](README_ptbr.md)
-## ⚠️ Legal Disclaimer and Usage Risks
-
-This script uses the **Telegram MTProto API via Telethon with user account credentials** (not a bot account). This means it operates as if you were logged into Telegram directly, which allows access to private channels and content forwarding.
-
-Telegram may consider automated usage of this type a violation of its [Terms of Service](https://telegram.org/tos), particularly at scale or for mass channel copying. This may result in **temporary or permanent suspension of your account and/or `api_id`**.
-
-**Additional behavior to consider:**
-- Forwarding via `forward_messages` relies on how Telegram resolves media references server-side. This behavior may change in future Telegram API or Telethon library updates without prior notice, potentially causing silent failures or broken functionality.
-
-**Use at your own risk. The author takes no responsibility for bans, data loss, or any consequences resulting from the use of this tool.**
-
-> **📤 About forwarding:** The script uses Telegram's `forward_messages` API method, forwarding messages directly between channels server-side — without downloading media locally. This minimizes network usage and local storage, but messages will appear with a "Forwarded from" tag at the destination. This behavior is intentional.
-
+>> [Versão em Português](README_ptbr.md)
 
 ## ✨ Features
 
@@ -192,6 +175,30 @@ When running the script, you will be asked whether you want to load new messages
 >[!NOTE]
 > If you interrupt the script and restart it, you can choose to continue from where you left off or start from scratch.
 
+## 🔄 How the Menu Works
+
+When running the script, you will be prompted with a sequence of options:
+
+1. **Language selection** — Choose between English and Português (BR).
+2. **Ignore duplicates** — Whether to skip messages already forwarded by the script.
+3. **Watch mode** — Whether to keep the script running and checking for new messages after the initial forward is complete.
+   - If enabled, you will be asked for the **check interval in minutes** and the **maximum runtime in hours** (0 = no limit).
+4. **Resume mode** *(only if watch mode is disabled)* — Whether to continue from the last forwarded message or start from scratch.
+
+> If you choose to start from scratch without the duplicate filter, the script will ask for confirmation before proceeding, since all messages will be re-forwarded.
+
+---
+
+## 👁 Watch Mode
+
+Watch mode keeps the script running after the initial forward is complete, periodically checking for new messages in the source channel and forwarding them automatically.
+
+- **Check interval:** how often the script checks for new messages (in minutes).
+- **Maximum runtime:** the script will stop automatically after the defined number of hours. Set to `0` for no limit.
+- To stop manually at any time, press `Ctrl+C`.
+
+> In watch mode, duplicate filtering is always active — previously forwarded messages are never re-sent.
+
 ## 🛠 Troubleshooting
 - Make sure you have joined the source and destination channels/groups before running the script.
 - Double-check your API credentials if you encounter authentication errors.
@@ -207,15 +214,5 @@ If you have ideas for improvements, fixes, or new features, open an *Issue* for 
 ## ❤️ Support
 If you find this project useful, please give the repository a star ⭐️ to show your support!
 
-<p align="center"> <samp>Based on the original project by Warnigo</samp> </p> 
-<p align="center">
-  <samp>
-    Enhanced and actively maintained by
-    <a href="https://github.com/WaggBR">WaggBR</a>
-  </samp>
-</p>
-<p align="center">
-  <a href="https://t.me/Wagg13">
-    <img src="https://img.shields.io/badge/Telegram-Contact-2CA5E0?logo=telegram&logoColor=white"/>
-  </a>
-</p>
+<p align="center"> <samp>Based on the original project by Warnigo</samp> </p>
+<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p>
