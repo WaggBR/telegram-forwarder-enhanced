@@ -215,4 +215,14 @@ If you have ideas for improvements, fixes, or new features, open an *Issue* for 
 If you find this project useful, please give the repository a star ⭐️ to show your support!
 
 <p align="center"> <samp>Based on the original project by Warnigo</samp> </p>
-<p align="center"> <samp>Enhanced and actively maintained by WaggBR</samp> </p>
+<p align="center">
+  <samp>
+    Enhanced and actively maintained by
+    <a href="https://github.com/WaggBR">WaggBR</a>
+  </samp>
+</p>
+<p align="center">
+  <a href="https://t.me/Wagg13">
+    <img src="https://img.shields.io/badge/Telegram-Contact-2CA5E0?logo=telegram&logoColor=white"/>
+  </a>
+</p> 
