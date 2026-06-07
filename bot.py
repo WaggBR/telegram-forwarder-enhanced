@@ -4,17 +4,20 @@
 import json
 import os
 import random
+import signal
 import time
 from datetime import datetime
 
 from telethon.sync import TelegramClient
 from telethon.tl.types import MessageService
-from telethon.errors import FloodWaitError
+from telethon.errors import FloodWaitError, SecurityError
 
 from config import Config as BOT_SETTING
 
 
-STATE_FILE = "forward_state.json"
+# Caminho absoluto relativo ao script — funciona independente do diretório de execução
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATE_FILE = os.path.join(BASE_DIR, "forward_state.json")
 
 
 # ==========================================
@@ -58,6 +61,8 @@ STRINGS = {
         "error":               "Error",
         "forward_failed":      "Forward Failed",
         "error_delay":         "Error Delay",
+        "reconnecting":        "Reconnecting...",
+        "session_error":       "Session error, reconnecting",
         "runtime":             "Runtime",
         "avg":                 "Avg",
         "finished":            " FORWARD FINISHED ",
@@ -70,6 +75,7 @@ STRINGS = {
         "warn_confirm":        "Confirm? (y/n): ",
         "cancelled":           "Operation cancelled.",
         "restart_prompt":      "Run again with new options? (y/n): ",
+        "state_error":         "WARNING: Could not load state file",
     },
     "pt": {
         "title":               " Telegram Forwarder ",
@@ -108,6 +114,8 @@ STRINGS = {
         "error":               "Erro",
         "forward_failed":      "Falha no Encaminhamento",
         "error_delay":         "Atraso por Erro",
+        "reconnecting":        "Reconectando...",
+        "session_error":       "Erro de sessão, reconectando",
         "runtime":             "Tempo rodando",
         "avg":                 "Média",
         "finished":            " ENCAMINHAMENTO FINALIZADO ",
@@ -120,6 +128,7 @@ STRINGS = {
         "warn_confirm":        "Confirmar? (s/n): ",
         "cancelled":           "Operação cancelada.",
         "restart_prompt":      "Executar novamente com novas opções? (s/n): ",
+        "state_error":         "AVISO: Não foi possível carregar o arquivo de estado",
     }
 }
 
@@ -130,8 +139,27 @@ STRINGS = {
 def select_language():
     print("\n============================")
     print(" Telegram Forwarder Enhanced ")
-    print("---by Wagg13---") 
+    print("---by Wagg13---")
     print("============================")
+
+    # Verifica se há idioma salvo no state
+    saved_lang = None
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, "r", encoding="utf-8-sig") as f:
+                data = json.load(f)
+                saved_lang = data.get("lang")
+        except Exception:
+            pass
+
+    if saved_lang in ("en", "pt"):
+        label = "Português (BR)" if saved_lang == "pt" else "English"
+        print(f"\n[Idioma salvo / Saved language]: {label}")
+        print("[ENTER] Usar este / Use this    [C] Trocar / Change")
+        choice = input("> ").strip().lower()
+        if choice != "c":
+            return saved_lang
+
     print("\n[1] English")
     print("[2] Português (BR)")
     choice = input("\nSelect language / Selecione o idioma: ").strip()
@@ -168,9 +196,12 @@ def load_state():
             "forwarded_messages": []
         }
     try:
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
+        with open(STATE_FILE, "r", encoding="utf-8-sig") as f:
             return json.load(f)
-    except Exception:
+    except Exception as e:
+        # Aviso explícito — não falha silenciosamente
+        print(f"\n⚠️  AVISO: Erro ao carregar '{STATE_FILE}': {e}")
+        print("   Iniciando com estado zerado.\n")
         return {
             "last_forwarded_id": 0,
             "forwarded_messages": []
@@ -193,13 +224,27 @@ def has_media(message):
 
 
 # ==========================================
+# RECONNECT HELPER
+# ==========================================
+def reconnect(client, s, wait=5):
+    log_message(s, s["error"], s["reconnecting"], "")
+    try:
+        client.disconnect()
+    except Exception:
+        pass
+    time.sleep(wait)
+    client.connect()
+    time.sleep(3)
+
+
+# ==========================================
 # FORWARD LOOP
 # ==========================================
 def forward_messages(client, s, state, forwarded_messages, script_start_time):
-    """Encaminha mensagens a partir do último ID salvo. Retorna total enviado."""
+    """Encaminha mensagens a partir do último ID salvo. Retorna total enviado nesta chamada."""
 
     last_forwarded_id = state.get("last_forwarded_id", 0)
-    amount_sent = 0
+    amount_sent = 0  # CORRIGIDO: conta apenas mensagens enviadas nesta chamada
 
     messages = client.iter_messages(
         BOT_SETTING.SOURCE_CHAT_ID,
@@ -265,6 +310,14 @@ def forward_messages(client, s, state, forwarded_messages, script_start_time):
             log_message(s, s["floodwait"], s["tg_limit"], f"{s['waiting']} {wait_time} {s['seconds']}")
             time.sleep(wait_time)
 
+        except SecurityError:
+            # Session ID inválido após reconexão — precisa recriar a sessão
+            save_state(state)
+            log_message(s, s["error"], s["session_error"], "")
+            reconnect(client, s, wait=10)
+            # Interrompe o iter atual; o watch vai reiniciar no próximo ciclo
+            break
+
         except Exception as e:
             save_state(state)
             log_message(s, s["error"], s["forward_failed"], str(e))
@@ -278,9 +331,10 @@ def forward_messages(client, s, state, forwarded_messages, script_start_time):
 # ==========================================
 # RUN
 # ==========================================
-def run(client, s):
+def run(client, s, lang):
 
     state = load_state()
+    state["lang"] = lang  # persiste idioma para próxima sessão
     forwarded_messages = set(state.get("forwarded_messages", []))
     last_forwarded_id = state.get("last_forwarded_id", 0)
 
@@ -299,9 +353,6 @@ def run(client, s):
         .lower()
         == s["ignore_input"]
     )
-
-    # No modo watch, duplicatas são sempre ignoradas por design.
-    # A pergunta abaixo só aparece se watch estiver desativado.
 
     # ==========================================
     # WATCH MODE OPTION
@@ -355,6 +406,17 @@ def run(client, s):
     total_sent = 0
 
     # ==========================================
+    # SIGNAL HANDLER — salva estado no Ctrl+C
+    # ==========================================
+    def handle_exit(sig, frame):
+        print("\n\n[AVISO] Interrompido. Salvando estado...")
+        save_state(state)
+        raise SystemExit(0)
+
+    signal.signal(signal.SIGINT, handle_exit)
+    signal.signal(signal.SIGTERM, handle_exit)
+
+    # ==========================================
     # WATCH MODE LOOP
     # ==========================================
     if watch_mode:
@@ -363,23 +425,40 @@ def run(client, s):
 
         while True:
 
-            # Verifica timeout
             if max_seconds and (time.time() - script_start_time) >= max_seconds:
                 log_message(s, "Info", s["watch_timeout"], "")
                 break
 
             log_message(s, "Info", s["watch_checking"], "")
 
-            sent = forward_messages(client, s, state, forwarded_messages, script_start_time)
-            total_sent += sent
+            try:
+                # Verifica conexão antes de cada ciclo
+                if not client.is_connected():
+                    reconnect(client, s)
 
-            if sent > 0:
-                log_message(s, "Info", s["watch_found"], f"+{sent}")
-            else:
-                log_message(
-                    s, "Info", s["watch_none"],
-                    f"{watch_interval} {s['watch_minutes']}"
-                )
+                sent = forward_messages(client, s, state, forwarded_messages, script_start_time)
+                total_sent += sent
+                save_state(state)  # CORRIGIDO: persiste state a cada ciclo do watch
+
+                if sent > 0:
+                    log_message(s, "Info", s["watch_found"], f"+{sent}")
+                else:
+                    log_message(
+                        s, "Info", s["watch_none"],
+                        f"{watch_interval} {s['watch_minutes']}"
+                    )
+
+            except SecurityError:
+                save_state(state)
+                log_message(s, s["error"], s["session_error"], "")
+                reconnect(client, s, wait=10)
+                continue
+
+            except Exception as e:
+                save_state(state)
+                log_message(s, s["error"], s["forward_failed"], str(e))
+                time.sleep(15)
+                continue
 
             # Aguarda intervalo, verificando timeout a cada segundo
             for _ in range(watch_interval * 60):
@@ -425,7 +504,7 @@ with TelegramClient(
 ) as client:
 
     while True:
-        run(client, s)
+        run(client, s, lang)
 
         restart = input(s["restart_prompt"]).strip().lower()
         if restart != s["ignore_input"]:
